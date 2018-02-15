@@ -22,9 +22,11 @@ int main(int argc, char ** argv){
 	if(connect_status==-1){
 		printf("ERROR: FAIL TO CONNECT TO THE SERVER");
 	}
+
 	char buffer[256];
 	recv(client_fd,&buffer,sizeof(buffer),0);
-	printf("%s",buffer);
+	printf("%s\n",buffer);
+	
 	close(client_fd);
 
 	return EXIT_SUCCESS;

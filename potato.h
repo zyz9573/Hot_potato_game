@@ -10,17 +10,23 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <time.h>
 
 struct player{
 	int id;
- 	int listenport;
- 	int speakport;
+	int port;
  	char *hostname;
+ 	int player_socket;
  	int left_id;
  	int left_port;
  	char *left_hostname;
  	int right_id;
  	int right_port;
  	char *right_hostname;
- 	int player_socket;
 };
+
+void printplayer(struct player * temp){
+	printf("id: %d, port: %d, hostname: %s, socketid: %d\n",temp->id,temp->port,temp->hostname,temp->player_socket);
+	printf("left id: %d, left port: %d, left hostname: %s\n",temp->left_id,temp->left_port,temp->left_hostname);
+	printf("right id: %d, right port: %d, right hostname: %s\n\n",temp->right_id,temp->right_port,temp->right_hostname);
+}
