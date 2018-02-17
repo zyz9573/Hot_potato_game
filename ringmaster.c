@@ -70,56 +70,67 @@ int main(int argc, char** argv){
     	struct hostent* temp_host = gethostbyaddr((char *)&incoming.sin_addr, sizeof(struct in_addr), AF_INET);
   		struct player * temp = (struct player*)malloc(sizeof(struct player));
   		temp->id = i;
-  		temp->hostname = temp_host->h_name;
+  		strcpy(temp->hostname,temp_host->h_name);
+  		//temp->hostname = temp_host->h_name;
   		temp->player_socket = client_fd;
   		temp->port = incoming.sin_port;
 
   		players[i] = temp;
   		printf("Player %d is ready to play\n",i);
-  	
-
-  		//char testmessage[256]="testmessage";
-  		//send(client_fd,testmessage,sizeof(testmessage),0);
-  		//memset(testmessage,'t',sizeof(testmessage)-200);
 	}
 
 //initial set up when you get all player connected
+	//step1 
 	for(int i=0;i<num_players;++i){
 		if(i==0){
-			players[0]->left_hostname = players[num_players-1]->hostname;
+			strcpy(players[0]->left_hostname,players[num_players-1]->hostname);
+			strcpy(players[0]->right_hostname,players[1]->hostname);
+			//players[0]->left_hostname = players[num_players-1]->hostname;
 			players[0]->left_id = players[num_players-1]->id;
 			players[0]->left_port = players[num_players-1]->port;
-			players[0]->right_hostname = players[1]->hostname;
+			//players[0]->right_hostname = players[1]->hostname;
 			players[0]->right_id = players[1]->id;
 			players[0]->right_port = players[1]->port;
 		}
 		else if(i==num_players-1){
-			players[num_players-1]->left_hostname = players[num_players-2]->hostname;
+			strcpy(players[num_players-1]->left_hostname,players[num_players-2]->hostname);
+			strcpy(players[num_players-1]->right_hostname,players[0]->hostname);
+			//players[num_players-1]->left_hostname = players[num_players-2]->hostname;
 			players[num_players-1]->left_id = players[num_players-2]->id;
 			players[num_players-1]->left_port = players[num_players-2]->port;
-			players[num_players-1]->right_hostname = players[0]->hostname;
+			//players[num_players-1]->right_hostname = players[0]->hostname;
 			players[num_players-1]->right_id = players[0]->id;
 			players[num_players-1]->right_port = players[0]->port;
 		}
 		else{
-			players[i]->left_hostname = players[i-1]->hostname;
+			strcpy(players[i]->left_hostname,players[i-1]->hostname);
+			strcpy(players[i]->right_hostname,players[i+1]->hostname);
+			//players[i]->left_hostname = players[i-1]->hostname;
 			players[i]->left_id = players[i-1]->id;
 			players[i]->left_port = players[i-1]->port;
-			players[i]->right_hostname = players[i+1]->hostname;
+			//players[i]->right_hostname = players[i+1]->hostname;
 			players[i]->right_id = players[i+1]->id;
 			players[i]->right_port = players[i+1]->port;
 		}
 	}
-
+	//step2 make all player know what they need to know
+	
   	time_t t;
   	srand((unsigned) time(&t));
   	int fp=rand()%num_players;
 	printf("Ready to start the game, sending potato to player %d\n",fp);
 
 	for(int i=0;i<num_players;++i){
+		char buffer[1024];
+		memset(buffer,0,sizeof(buffer));
+		memcpy(buffer,players[i],sizeof(struct player));
+		send(players[i]->player_socket,buffer,sizeof(buffer),0);
 		printplayer(players[i]);
 	}
   	close(server_fd);
 
   	return EXIT_SUCCESS;
 }
+  		//char testmessage[256]="testmessage";
+  		//send(client_fd,testmessage,sizeof(testmessage),0);
+  		//memset(testmessage,'t',sizeof(testmessage)-200);

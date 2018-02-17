@@ -15,14 +15,14 @@
 struct player{
 	int id;
 	int port;
- 	char *hostname;
+ 	char hostname[64];
  	int player_socket;
  	int left_id;
  	int left_port;
- 	char *left_hostname;
+ 	char left_hostname[64];
  	int right_id;
  	int right_port;
- 	char *right_hostname;
+ 	char right_hostname[64];
 };
 
 void printplayer(struct player * temp){

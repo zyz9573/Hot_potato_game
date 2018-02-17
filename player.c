@@ -23,9 +23,13 @@ int main(int argc, char ** argv){
 		printf("ERROR: FAIL TO CONNECT TO THE SERVER");
 	}
 
-	char buffer[256];
+	char buffer[1024];
+	memset(buffer,0,sizeof(buffer));
 	recv(client_fd,&buffer,sizeof(buffer),0);
-	printf("%s\n",buffer);
+	struct player test;
+	memset(&test,0,sizeof(test));
+	memcpy(&test,buffer,sizeof(struct player));
+	printplayer(&test);
 	
 	close(client_fd);
 
