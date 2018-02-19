@@ -13,6 +13,8 @@
 #include <time.h>
 
 struct player{
+
+	int server_socket;
 	int id;
 	int port;
  	char hostname[64];
@@ -23,9 +25,29 @@ struct player{
  	int right_id;
  	int right_port;
  	char right_hostname[64];
+ 	int change;
 };
 
+int max(int a, int b){
+	if(a>b){return a;}
+	return b;
+}
+int leftorright(int a){
+	sleep(1);
+	time_t t;
+  	srand((unsigned) time(&t)+a);
+  	int fp=rand()%10;
+  	printf("random is %d\n",fp);
+  	if(fp>5){return 1;}
+  	return 0;
+}
+char * itostr(char *str, int i)
+{
+    sprintf(str, "%d", i);
+    return str;
+}
 void printplayer(struct player * temp){
+	printf("server_socket: %d\n",temp->server_socket);
 	printf("id: %d, port: %d, hostname: %s, socketid: %d\n",temp->id,temp->port,temp->hostname,temp->player_socket);
 	printf("left id: %d, left port: %d, left hostname: %s\n",temp->left_id,temp->left_port,temp->left_hostname);
 	printf("right id: %d, right port: %d, right hostname: %s\n\n",temp->right_id,temp->right_port,temp->right_hostname);

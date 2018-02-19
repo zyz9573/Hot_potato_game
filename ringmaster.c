@@ -61,6 +61,9 @@ int main(int argc, char** argv){
 //wait for all player connect to this game
   	struct player* players[512];//at most 512 player can join this game
   	struct sockaddr_in incoming;
+  	fd_set set;
+  	FD_ZERO(&set);
+  	int maxfdp=0;
   	for(int i=0;i<num_players;++i){
   		socklen_t len = sizeof(server_in);
   		int client_fd = accept(server_fd,(struct sockaddr*)&incoming,&len);
@@ -77,11 +80,15 @@ int main(int argc, char** argv){
 
   		players[i] = temp;
   		printf("Player %d is ready to play\n",i);
+  		FD_SET(client_fd,&set);
+  		maxfdp=max(maxfdp,client_fd);
 	}
-
+	maxfdp++;
 //initial set up when you get all player connected
 	//step1 
 	for(int i=0;i<num_players;++i){
+		players[i]->server_socket=server_fd;
+		players[i]->change=0;
 		if(i==0){
 			strcpy(players[0]->left_hostname,players[num_players-1]->hostname);
 			strcpy(players[0]->right_hostname,players[1]->hostname);
@@ -101,6 +108,7 @@ int main(int argc, char** argv){
 			//players[num_players-1]->right_hostname = players[0]->hostname;
 			players[num_players-1]->right_id = players[0]->id;
 			players[num_players-1]->right_port = players[0]->port;
+			players[num_players-1]->change=1;
 		}
 		else{
 			strcpy(players[i]->left_hostname,players[i-1]->hostname);
@@ -115,11 +123,6 @@ int main(int argc, char** argv){
 	}
 	//step2 make all player know what they need to know
 	
-  	time_t t;
-  	srand((unsigned) time(&t));
-  	int fp=rand()%num_players;
-	printf("Ready to start the game, sending potato to player %d\n",fp);
-
 	for(int i=0;i<num_players;++i){
 		char buffer[1024];
 		memset(buffer,0,sizeof(buffer));
@@ -127,6 +130,184 @@ int main(int argc, char** argv){
 		send(players[i]->player_socket,buffer,sizeof(buffer),0);
 		printplayer(players[i]);
 	}
+	//step2.3 make sure each player has bind completed
+	char hint[16];
+	for(int i=0;i<num_players;++i){
+		while(1){
+			memset(hint,0,sizeof(hint));
+			recv(players[i]->player_socket,&hint,sizeof(hint),0);
+			if(strcmp(hint,"COMPLETE")==0){
+				break;
+			}			
+		}
+	}
+	char ack[16]="KNOW";
+	for(int i=0;i<num_players;++i){
+		send(players[i]->player_socket,ack,sizeof(ack),0);
+	}
+	printf("all bind are done\n");
+	//step 2.6 make sure all left connected
+	char left_hint[16];
+	for(int i=0;i<num_players;++i){
+		while(1){
+			memset(left_hint,0,sizeof(left_hint));
+			recv(players[i]->player_socket,&left_hint,sizeof(left_hint),0);
+			if(strcmp(left_hint,"COMPLETE")==0){
+				break;
+			}			
+		}
+	}
+	char left_ack[16]="KNOW";
+	for(int i=0;i<num_players;++i){
+		send(players[i]->player_socket,left_ack,sizeof(left_ack),0);
+	}	
+	printf("all left connection are done\n");
+	//step3 make sure all players connect to their neighbor
+	char done[8];
+	for(int i=0;i<num_players;++i){
+		while(1){
+			memset(done,0,sizeof(done));
+			recv(players[i]->player_socket,&done,sizeof(done),0);
+			if(strcmp(done,"DONE")==0){
+				printf("%s\n",done);
+				break;
+			}			
+		}
+	}
+	printf("all right connection are done\n");
+
+// now it is time to start the game, let's throw potato
+	char trace[4096];
+	memset(trace,0,sizeof(trace));
+	strcat(trace,"Trace of potato:\n");
+	//pick a random start
+  	time_t t;
+  	srand((unsigned) time(&t));
+  	int fp=rand()%num_players;
+	
+	char potato[32] = "potato";
+	char fake_potato[32] = "fake_potato";
+	char this_id[8];
+	//char next_id[8];
+
+	int end_id=-1;
+	for(int i=0;i<num_players;++i){
+		if(i==fp){
+			send(players[i]->player_socket,potato,sizeof(potato),0);			
+		}
+		else{
+			send(players[i]->player_socket,fake_potato,sizeof(fake_potato),0);
+		}
+	}
+
+
+	printf("Ready to start the game, sending potato to player %d\n",fp);
+	while(num_hops>0){
+		int temp_fd=-1;
+		int am = select(maxfdp,&set,NULL,NULL,NULL);
+		printf("active is %d\n",am);	
+		for(int i=0;i<num_players;i++){
+			if(FD_ISSET(players[i]->player_socket,&set)){
+				temp_fd = players[i]->player_socket;
+				itostr(this_id,players[i]->id);
+				break;
+			}
+		}
+		strcat(trace,this_id);
+		strcat(trace,",");
+		char next_id[8];
+		memset(next_id,0,sizeof(this_id));
+		recv(temp_fd,&next_id,sizeof(next_id),0);
+
+		int nid = atoi(next_id);
+		for(int i=0;i<num_players;i++){
+			if(players[i]->id==nid){
+				char ready[8]="READY";
+				send(players[i]->player_socket,ready,sizeof(ready),0);
+				memset(ready,0,sizeof(ready));
+				recv(players[i]->player_socket,&ready,sizeof(ready),0);
+				while(1){
+					if(strcmp(ready,"ready")==0){
+						break ;
+					}
+				}
+				break;
+			}
+		}
+
+		strcat(trace,next_id);
+		strcat(trace,"\n");
+		memset(this_id,0,sizeof(this_id));
+		strcpy(this_id,next_id);
+		end_id=atoi(this_id);
+		char ready[8]="READY1";
+		send(temp_fd,ready,sizeof(ready),0);
+		num_hops--;
+		FD_ZERO(&set);
+		for(int i=0;i<num_players;i++){
+			FD_SET(players[i]->player_socket,&set);
+		}		
+	}
+/*
+	while(num_hops>0){
+		int temp_fd=-1;
+		int am = select(maxfdp,&set,NULL,NULL,NULL);
+		printf("active is %d\n",am);
+		for(int i=0;i<num_players;i++){
+			if(FD_ISSET(players[i]->player_socket,&set)){
+				temp_fd = players[i]->player_socket;
+				break;
+			}
+		}
+		printf("temp fd is %d\n",temp_fd);
+		memset(next_id,0,sizeof(this_id));
+		recv(temp_fd,&next_id,sizeof(next_id),0);
+		if(strcmp(next_id,this_id)==0){
+			continue ;
+		}
+		printf("current id is %s\n",next_id);
+		strcat(trace,this_id);
+		strcat(trace,",");
+		strcat(trace,next_id);
+		strcat(trace,"\n");
+
+		char ack_info[16]="MOVE";
+		send(players[atoi(this_id)]->player_socket,ack_info,sizeof(ack_info),0);
+		
+		memset(this_id,0,sizeof(this_id));
+		strcpy(this_id,next_id);
+		end_id = atoi(next_id);
+		num_hops--;
+		FD_ZERO(&set);
+		for(int i=0;i<num_players;i++){
+			FD_SET(players[i]->player_socket,&set);
+		}
+	}
+*/
+	for(int i=0;i<num_players;i++){
+		if(players[i]->id==end_id){
+			char s_message[32]="IT";
+			send(players[i]->player_socket,s_message,sizeof(s_message),0);
+		}
+		else{
+			char s_message[32]="END";
+			send(players[i]->player_socket,s_message,sizeof(s_message),0);			
+		}
+
+	}
+	printf("%s",trace);
+/*
+	for(int i=0;i<num_players;++i){
+		char over[16];
+		memset(over,0,sizeof(over));
+		recv(players[i]->player_socket,over,sizeof(over),0);
+		while(1){
+			if(strcmp(over,"OVER")==0){
+				break;
+			}
+		}
+	}
+*/  
   	close(server_fd);
 
   	return EXIT_SUCCESS;
