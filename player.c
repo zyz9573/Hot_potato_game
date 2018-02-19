@@ -2,6 +2,7 @@
 #include "potato.h"
 
 int main(int argc, char ** argv){
+
 	char* s_hostname;
 	s_hostname = argv[1];
 	int port_num = atoi(argv[2]);
@@ -40,7 +41,7 @@ int main(int argc, char ** argv){
 		//printf("is %x\n",this_host_in.sin_addr.s_addr);
   		int bind_status = bind(host_fd,(struct sockaddr *)&this_host_in,sizeof(this_host_in));//assign a address to socket  	
   		if ( bind_status < 0 ) {
-  			if(i==51097){
+  			if(i==port_high){
     			perror("bind:");
     			exit(bind_status);
   			}
@@ -70,7 +71,7 @@ int main(int argc, char ** argv){
 
 	memset(buffer,0,sizeof(buffer));
 	struct player * player_info = &player_info_;
-	printplayer(player_info);
+	//printplayer(player_info);
 //build connection with neighbors
 /*
 	//bind this player
@@ -113,9 +114,10 @@ int main(int argc, char ** argv){
   	left_host_in.sin_family = AF_INET;
   	left_host_in.sin_port = htons(player_info->left_port);
 	memcpy(&left_host_in.sin_addr, left_host_name->h_addr_list[0], left_host_name->h_length);
-	int left_connect_status = connect(left_client_fd,(struct sockaddr *)&left_host_in,sizeof(server_in));
+	int left_connect_status = connect(left_client_fd,(struct sockaddr *)&left_host_in,sizeof(left_host_in));
 	if(left_connect_status==-1){
 		printf("ERROR: FAIL TO CONNECT TO THE LEFT PLAYER\n");
+		exit(left_connect_status);
 	}
 	struct sockaddr_in incoming;
 	socklen_t len = sizeof(incoming);
@@ -206,9 +208,10 @@ RACE CONDITION!!!
 	recv(right_host_fd,&test2_buffer,sizeof(test2_buffer),0);
 	printf("%s\n",test2_buffer);
 */
-	printf("Here is %d, left fd is %d, right fd is %d\n",player_info->id,left_host_fd,right_host_fd);
+	//printf("Here is %d, left fd is %d, right fd is %d\n",player_info->id,left_host_fd,right_host_fd);
 
-
+	time_t t;
+  	srand((unsigned) time(&t)+player_info->id);
 
 //construct fd_set
 	fd_set set;
@@ -247,7 +250,7 @@ RACE CONDITION!!!
 			char next_id[8];
 			memset(next_id,0,sizeof(next_id));
 			
-			if(leftorright(player_info->id)==0){
+			if(rand()%2==0){
 				direction=1;
 				itostr(next_id,player_info->left_id);
 				printf("sending potato to %d\n",player_info->left_id);
@@ -271,8 +274,8 @@ RACE CONDITION!!!
 			if(status==2){
 				char ready[8]="ready";
 				send(client_fd,ready,sizeof(ready),0);
-				int am = select(maxfdp,&set,NULL,NULL,NULL);
-				printf("active is %d\n",am);
+				select(maxfdp,&set,NULL,NULL,NULL);
+				//printf("active is %d\n",am);
 				char recv_message[32];
 				memset(recv_message,0,sizeof(recv_message));	
 				if(FD_ISSET(left_host_fd,&set)){
@@ -287,7 +290,7 @@ RACE CONDITION!!!
 				direction=0;
 				char next_id[8];
 				memset(next_id,0,sizeof(next_id));
-				if(leftorright(player_info->id)==0){
+				if(rand()%2==0){
 					direction=1;
 					itostr(next_id,player_info->left_id);
 					printf("sending potato to %d\n",player_info->left_id);

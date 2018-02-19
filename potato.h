@@ -35,13 +35,10 @@ int max(int a, int b){
 	return b;
 }
 int leftorright(int a){
-	sleep(1);
 	time_t t;
   	srand((unsigned) time(&t)+a);
-  	int fp=rand()%10;
-  	printf("random is %d\n",fp);
-  	if(fp>5){return 1;}
-  	return 0;
+  	int fp=rand()%2;
+  	return fp;
 }
 char * itostr(char *str, int i)
 {

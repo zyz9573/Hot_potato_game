@@ -39,9 +39,9 @@ int main(int argc, char** argv){
   	if ( host_info == NULL ) {
     	exit(EXIT_FAILURE);
   	}
-	printf("%d\n",host_info->h_length);//MSI.localdomain
+	//printf("%d\n",host_info->h_length);//MSI.localdomain
 	//printf("%s\n",host_info->h_aliases[0]);//MSI
-	printf("%p\n",host_info->h_addr_list[0]);//null
+	//printf("%p\n",host_info->h_addr_list[0]);//null
 
   	struct sockaddr_in server_in;
   	server_in.sin_family = AF_INET;
@@ -54,8 +54,8 @@ int main(int argc, char** argv){
     	perror("bind:");
     	exit(bind_status);
   	}
-  	printf("%x\n",server_in.sin_addr.s_addr);
-  	printf("%s\n",host_info->h_addr_list[0]);
+  	//printf("%x\n",server_in.sin_addr.s_addr);
+  	//printf("%s\n",host_info->h_addr_list[0]);
 
   	listen(server_fd,5);
 //wait for all player connect to this game
@@ -67,16 +67,16 @@ int main(int argc, char** argv){
   	for(int i=0;i<num_players;++i){
   		socklen_t len = sizeof(server_in);
   		int client_fd = accept(server_fd,(struct sockaddr*)&incoming,&len);
-  		printf("%x\n",incoming.sin_addr.s_addr);
-  		printf("%d\n",incoming.sin_port);
+  		//printf("%x\n",incoming.sin_addr.s_addr);
+  		//printf("%d\n",incoming.sin_port);
 
-    	struct hostent* temp_host = gethostbyaddr((char *)&incoming.sin_addr, sizeof(struct in_addr), AF_INET);
+    	//struct hostent* temp_host = gethostbyaddr((char *)&incoming.sin_addr, sizeof(struct in_addr), AF_INET);
   		struct player * temp = (struct player*)malloc(sizeof(struct player));
   		temp->id = i;
-  		strcpy(temp->hostname,temp_host->h_name);
+  		//strcpy(temp->hostname,temp_host->h_name);
   		temp->player_socket = client_fd;
   		//temp->port = incoming.sin_port;
-  		temp->port = 0;
+  		//temp->port = 0;
   		players[i] = temp;
   		printf("Player %d is ready to play\n",i);
   		FD_SET(client_fd,&set);
@@ -93,7 +93,7 @@ int main(int argc, char** argv){
 		memcpy(&temp_player,buffer2,sizeof(temp_player));
 		memset(buffer2,0,sizeof(buffer2));
 		players[i]->port = temp_player.port;
-		//strcpy(players[i]->hostname,temp_player.hostname);
+		strcpy(players[i]->hostname,temp_player.hostname);
 	}
 //initial set up when you get all player connected
 	//step1 
@@ -139,7 +139,7 @@ int main(int argc, char** argv){
 		memset(buffer,0,sizeof(buffer));
 		memcpy(buffer,players[i],sizeof(struct player));
 		send(players[i]->player_socket,buffer,sizeof(buffer),0);
-		printplayer(players[i]);
+		//printplayer(players[i]);
 	}
 	//step2.3 make sure each player has bind completed
 	char hint[16];
@@ -156,7 +156,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,ack,sizeof(ack),0);
 	}
-	printf("all bind are done\n");
+	//printf("all bind are done\n");
 	//step 2.6 make sure all left connected
 	char left_hint[16];
 	for(int i=0;i<num_players;++i){
@@ -172,7 +172,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,left_ack,sizeof(left_ack),0);
 	}	
-	printf("all left connection are done\n");
+	//printf("all left connection are done\n");
 	//step3 make sure all players connect to their neighbor
 	char done[8];
 	for(int i=0;i<num_players;++i){
@@ -180,12 +180,12 @@ int main(int argc, char** argv){
 			memset(done,0,sizeof(done));
 			recv(players[i]->player_socket,&done,sizeof(done),0);
 			if(strcmp(done,"DONE")==0){
-				printf("%s\n",done);
+				//printf("%s\n",done);
 				break;
 			}			
 		}
 	}
-	printf("all right connection are done\n");
+	//printf("all right connection are done\n");
 
 // now it is time to start the game, let's throw potato
 	char trace[4096];
@@ -215,8 +215,8 @@ int main(int argc, char** argv){
 	printf("Ready to start the game, sending potato to player %d\n",fp);
 	while(num_hops>0){
 		int temp_fd=-1;
-		int am = select(maxfdp,&set,NULL,NULL,NULL);
-		printf("active is %d\n",am);	
+		select(maxfdp,&set,NULL,NULL,NULL);
+		//printf("active is %d\n",am);	
 		for(int i=0;i<num_players;i++){
 			if(FD_ISSET(players[i]->player_socket,&set)){
 				temp_fd = players[i]->player_socket;
