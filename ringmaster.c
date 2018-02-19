@@ -248,42 +248,7 @@ int main(int argc, char** argv){
 			FD_SET(players[i]->player_socket,&set);
 		}		
 	}
-/*
-	while(num_hops>0){
-		int temp_fd=-1;
-		int am = select(maxfdp,&set,NULL,NULL,NULL);
-		printf("active is %d\n",am);
-		for(int i=0;i<num_players;i++){
-			if(FD_ISSET(players[i]->player_socket,&set)){
-				temp_fd = players[i]->player_socket;
-				break;
-			}
-		}
-		printf("temp fd is %d\n",temp_fd);
-		memset(next_id,0,sizeof(this_id));
-		recv(temp_fd,&next_id,sizeof(next_id),0);
-		if(strcmp(next_id,this_id)==0){
-			continue ;
-		}
-		printf("current id is %s\n",next_id);
-		strcat(trace,this_id);
-		strcat(trace,",");
-		strcat(trace,next_id);
-		strcat(trace,"\n");
 
-		char ack_info[16]="MOVE";
-		send(players[atoi(this_id)]->player_socket,ack_info,sizeof(ack_info),0);
-		
-		memset(this_id,0,sizeof(this_id));
-		strcpy(this_id,next_id);
-		end_id = atoi(next_id);
-		num_hops--;
-		FD_ZERO(&set);
-		for(int i=0;i<num_players;i++){
-			FD_SET(players[i]->player_socket,&set);
-		}
-	}
-*/
 	for(int i=0;i<num_players;i++){
 		if(players[i]->id==end_id){
 			char s_message[32]="IT";
@@ -296,19 +261,7 @@ int main(int argc, char** argv){
 
 	}
 	printf("%s",trace);
-/*
-	for(int i=0;i<num_players;++i){
-		char over[16];
-		memset(over,0,sizeof(over));
-		recv(players[i]->player_socket,over,sizeof(over),0);
-		while(1){
-			if(strcmp(over,"OVER")==0){
-				break;
-			}
-		}
-	}
-*/  
-  	close(server_fd);
+	close(server_fd);
 
   	return EXIT_SUCCESS;
 }
