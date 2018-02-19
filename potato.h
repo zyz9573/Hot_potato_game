@@ -12,6 +12,8 @@
 #include <netdb.h>
 #include <time.h>
 //51015-51097
+#define port_low 1025
+#define port_high 65535
 struct player{
 
 	int server_socket;

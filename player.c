@@ -35,7 +35,7 @@ int main(int argc, char ** argv){
    	struct sockaddr_in this_host_in;
   	this_host_in.sin_family = AF_INET;
   	memcpy(&this_host_in.sin_addr, this_host_name->h_addr_list[0], this_host_name->h_length);
-  	for(int i=51015;i<=51097;++i){
+  	for(int i=port_low;i<=port_high;++i){
   		this_host_in.sin_port = htons(i);		
 		//printf("is %x\n",this_host_in.sin_addr.s_addr);
   		int bind_status = bind(host_fd,(struct sockaddr *)&this_host_in,sizeof(this_host_in));//assign a address to socket  	
@@ -312,6 +312,7 @@ RACE CONDITION!!!
 		}
 	}
 
+	free(temp_player);
 	close(client_fd);
 
 	return EXIT_SUCCESS;

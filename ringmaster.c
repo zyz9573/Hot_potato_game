@@ -272,6 +272,11 @@ int main(int argc, char** argv){
 
 	}
 	printf("%s",trace);
+
+	for(int i=0;i<num_players;++i){
+		free(players[i]);
+	}
+
 	close(server_fd);
 
   	return EXIT_SUCCESS;
