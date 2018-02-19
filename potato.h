@@ -11,7 +11,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <time.h>
-
+//51015-51097
 struct player{
 
 	int server_socket;

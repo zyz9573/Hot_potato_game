@@ -2,11 +2,11 @@
 #include "potato.h"
 
 int main(int argc, char ** argv){
-	char* hostname;
-	hostname = argv[1];
+	char* s_hostname;
+	s_hostname = argv[1];
 	int port_num = atoi(argv[2]);
 
-	struct hostent * host_info = gethostbyname(hostname);
+	struct hostent * host_info = gethostbyname(s_hostname);
   	if ( host_info == NULL ) {
     	exit(EXIT_FAILURE);
   	}
@@ -22,7 +22,45 @@ int main(int argc, char ** argv){
 	if(connect_status==-1){
 		printf("ERROR: FAIL TO CONNECT TO THE SERVER");
 	}
+	//bind this player
+	struct player * temp_player = (struct player*)malloc(sizeof(struct player));
+	int host_fd = socket(AF_INET,SOCK_STREAM,0);
+	char hostname[64];
+	gethostname(hostname,sizeof(hostname));
+	strcpy(temp_player->hostname,hostname);
+	struct hostent * this_host_name = gethostbyname(hostname);
+  	if ( this_host_name == NULL ) {
+    	exit(EXIT_FAILURE);
+  	}
+   	struct sockaddr_in this_host_in;
+  	this_host_in.sin_family = AF_INET;
+  	memcpy(&this_host_in.sin_addr, this_host_name->h_addr_list[0], this_host_name->h_length);
+  	for(int i=51015;i<=51097;++i){
+  		this_host_in.sin_port = htons(i);		
+		//printf("is %x\n",this_host_in.sin_addr.s_addr);
+  		int bind_status = bind(host_fd,(struct sockaddr *)&this_host_in,sizeof(this_host_in));//assign a address to socket  	
+  		if ( bind_status < 0 ) {
+  			if(i==51097){
+    			perror("bind:");
+    			exit(bind_status);
+  			}
+  			else{
+  				continue;
+  			}
+  		}
+  		else{
+  			temp_player->port = i;
+  			break ;
+  		}
+  	}
+	listen(host_fd,5);
+//tell server port number and hostname
+	char buffer2[1024];
+	memset(buffer2,0,sizeof(buffer2));
+	memcpy(buffer2,temp_player,sizeof(struct player));
+	send(client_fd,buffer2,sizeof(buffer2),0);
 
+//get info they need
 	char buffer[1024];
 	memset(buffer,0,sizeof(buffer));
 	recv(client_fd,&buffer,sizeof(buffer),0);
@@ -34,6 +72,7 @@ int main(int argc, char ** argv){
 	struct player * player_info = &player_info_;
 	printplayer(player_info);
 //build connection with neighbors
+/*
 	//bind this player
 	int host_fd = socket(AF_INET,SOCK_STREAM,0);
 	struct hostent * this_host_name = gethostbyname(player_info->hostname);
@@ -43,7 +82,6 @@ int main(int argc, char ** argv){
    	struct sockaddr_in this_host_in;
   	this_host_in.sin_family = AF_INET;
   	this_host_in.sin_port = htons(player_info->port);
-	//this_host_in.sin_addr.s_addr = INADDR_ANY;
 	memcpy(&this_host_in.sin_addr, this_host_name->h_addr_list[0], this_host_name->h_length);
 	printf("is %x\n",this_host_in.sin_addr.s_addr);
   	int bind_status = bind(host_fd,(struct sockaddr *)&this_host_in,sizeof(this_host_in));//assign a address to socket
@@ -53,7 +91,7 @@ int main(int argc, char ** argv){
     	exit(bind_status);
   	}
 	listen(host_fd,5);
-
+*/
 //tell server bind complete
 	char hint[16]="COMPLETE";
 	send(client_fd,hint,sizeof(hint),0);

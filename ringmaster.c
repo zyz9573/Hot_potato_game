@@ -74,16 +74,27 @@ int main(int argc, char** argv){
   		struct player * temp = (struct player*)malloc(sizeof(struct player));
   		temp->id = i;
   		strcpy(temp->hostname,temp_host->h_name);
-  		//temp->hostname = temp_host->h_name;
   		temp->player_socket = client_fd;
-  		temp->port = incoming.sin_port;
-
+  		//temp->port = incoming.sin_port;
+  		temp->port = 0;
   		players[i] = temp;
   		printf("Player %d is ready to play\n",i);
   		FD_SET(client_fd,&set);
   		maxfdp=max(maxfdp,client_fd);
 	}
 	maxfdp++;
+// recv player port number and hostname
+	for(int i=0;i<num_players;++i){
+		char buffer2[1024];
+		memset(buffer2,0,sizeof(buffer2));
+		recv(players[i]->player_socket,&buffer2,sizeof(buffer2),0);
+		struct player temp_player;
+		memset(&temp_player,0,sizeof(temp_player));
+		memcpy(&temp_player,buffer2,sizeof(temp_player));
+		memset(buffer2,0,sizeof(buffer2));
+		players[i]->port = temp_player.port;
+		//strcpy(players[i]->hostname,temp_player.hostname);
+	}
 //initial set up when you get all player connected
 	//step1 
 	for(int i=0;i<num_players;++i){
