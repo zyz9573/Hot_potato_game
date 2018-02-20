@@ -21,7 +21,7 @@ int main(int argc, char ** argv){
 	
 	int connect_status = connect(client_fd,(struct sockaddr *)&server_in,sizeof(server_in));
 	if(connect_status==-1){
-		printf("ERROR: FAIL TO CONNECT TO THE SERVER");
+		printf("ERROR: FAIL TO CONNECT TO THE SERVER\n");
 	}
 	//bind this player
 	struct player * temp_player = (struct player*)malloc(sizeof(struct player));
@@ -316,6 +316,9 @@ RACE CONDITION!!!
 	}
 
 	free(temp_player);
+	close(left_client_fd);
+	close(right_client_fd);
+	close(host_fd);
 	close(client_fd);
 
 	return EXIT_SUCCESS;
