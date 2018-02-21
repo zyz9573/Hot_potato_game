@@ -15,7 +15,7 @@
 #define port_low 51015
 #define port_high 51097
 struct player{
-        int total;
+	int total;
 	int server_socket;
 	int id;
 	int port;

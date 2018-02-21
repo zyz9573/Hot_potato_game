@@ -157,7 +157,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,ack,sizeof(ack),0);
 	}
-	printf("all bind are done\n");
+	//printf("all bind are done\n");
 	//step 2.6 make sure all left connected
 	char left_hint[16];
 	for(int i=0;i<num_players;++i){
@@ -173,7 +173,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,left_ack,sizeof(left_ack),0);
 	}	
-	printf("all left connection are done\n");
+	//printf("all left connection are done\n");
 	//step3 make sure all players connect to their neighbor
 	char done[8];
 	for(int i=0;i<num_players;++i){
@@ -186,7 +186,7 @@ int main(int argc, char** argv){
 			}			
 		}
 	}
-	printf("all right connection are done\n");
+	//	printf("all right connection are done\n");
 
 // now it is time to start the game, let's throw potato
 	char trace[4096];
@@ -204,10 +204,18 @@ int main(int argc, char** argv){
 
 	int end_id=-1;
 	printf("Ready to start the game, sending potato to player %d\n",fp);
-	if(num_hops>0){
+	itostr(this_id,fp);
+	if(num_hops==1){
+		num_hops--;
+		strcat(trace,this_id);
+	}	
+	else if(num_hops>1){
 	for(int i=0;i<num_players;++i){
 		if(i==fp){
-			send(players[i]->player_socket,potato,sizeof(potato),0);			
+			send(players[i]->player_socket,potato,sizeof(potato),0);
+		    
+		    strcat(trace,this_id);
+		    strcat(trace,",");
 		}
 		else{
 			send(players[i]->player_socket,fake_potato,sizeof(fake_potato),0);
@@ -216,7 +224,7 @@ int main(int argc, char** argv){
 
 
 	//printf("Ready to start the game, sending potato to player %d\n",fp);
-	strcat(trace,this_id);
+	//strcat(trace,this_id);
 	while(num_hops>0){
 		int temp_fd=-1;
 		select(maxfdp,&set,NULL,NULL,NULL);
@@ -224,6 +232,7 @@ int main(int argc, char** argv){
 		for(int i=0;i<num_players;i++){
 			if(FD_ISSET(players[i]->player_socket,&set)){
 				temp_fd = players[i]->player_socket;
+				memset(this_id,0,sizeof(this_id));
 				itostr(this_id,players[i]->id);
 				break;
 			}
@@ -278,6 +287,7 @@ int main(int argc, char** argv){
 		}
 
 	}
+	strcat(trace,"\n");
 	printf("%s",trace);
 
 	for(int i=0;i<num_players;++i){

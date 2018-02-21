@@ -71,6 +71,7 @@ int main(int argc, char ** argv){
 
 	memset(buffer,0,sizeof(buffer));
 	struct player * player_info = &player_info_;
+	printf("Connected as player %d out of %d total playes\n",player_info->id,player_info->total);
 	//printplayer(player_info);
 //build connection with neighbors
 /*
@@ -209,7 +210,7 @@ RACE CONDITION!!!
 	printf("%s\n",test2_buffer);
 */
 	//printf("Here is %d, left fd is %d, right fd is %d\n",player_info->id,left_host_fd,right_host_fd);
-	printf("Connected as player %d out of %d total playes",player_info->id,player_info->total);
+        
 	time_t t;
   	srand((unsigned) time(&t)+player_info->id);
 
