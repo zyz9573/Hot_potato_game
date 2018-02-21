@@ -98,6 +98,7 @@ int main(int argc, char** argv){
 //initial set up when you get all player connected
 	//step1 
 	for(int i=0;i<num_players;++i){
+	        players[i]->total = num_players;
 		players[i]->server_socket=server_fd;
 		players[i]->change=0;
 		if(i==0){
@@ -156,7 +157,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,ack,sizeof(ack),0);
 	}
-	//printf("all bind are done\n");
+	printf("all bind are done\n");
 	//step 2.6 make sure all left connected
 	char left_hint[16];
 	for(int i=0;i<num_players;++i){
@@ -172,7 +173,7 @@ int main(int argc, char** argv){
 	for(int i=0;i<num_players;++i){
 		send(players[i]->player_socket,left_ack,sizeof(left_ack),0);
 	}	
-	//printf("all left connection are done\n");
+	printf("all left connection are done\n");
 	//step3 make sure all players connect to their neighbor
 	char done[8];
 	for(int i=0;i<num_players;++i){
@@ -185,7 +186,7 @@ int main(int argc, char** argv){
 			}			
 		}
 	}
-	//printf("all right connection are done\n");
+	printf("all right connection are done\n");
 
 // now it is time to start the game, let's throw potato
 	char trace[4096];
@@ -215,6 +216,7 @@ int main(int argc, char** argv){
 
 
 	//printf("Ready to start the game, sending potato to player %d\n",fp);
+	strcat(trace,this_id);
 	while(num_hops>0){
 		int temp_fd=-1;
 		select(maxfdp,&set,NULL,NULL,NULL);
@@ -226,8 +228,8 @@ int main(int argc, char** argv){
 				break;
 			}
 		}
-		strcat(trace,this_id);
-		strcat(trace,",");
+		//strcat(trace,this_id);
+		//strcat(trace,",");
 		char next_id[8];
 		memset(next_id,0,sizeof(this_id));
 		recv(temp_fd,&next_id,sizeof(next_id),0);
@@ -249,7 +251,10 @@ int main(int argc, char** argv){
 		}
 
 		strcat(trace,next_id);
-		strcat(trace,"\n");
+		//strcat(trace,"\n");
+		if(num_hops!=1){
+		  strcat(trace,",");
+		}
 		memset(this_id,0,sizeof(this_id));
 		strcpy(this_id,next_id);
 		end_id=atoi(this_id);
@@ -260,7 +265,7 @@ int main(int argc, char** argv){
 		for(int i=0;i<num_players;i++){
 			FD_SET(players[i]->player_socket,&set);
 		}		
-	}
+		}
 	}
 	for(int i=0;i<num_players;i++){
 		if(players[i]->id==end_id){

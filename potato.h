@@ -12,10 +12,10 @@
 #include <netdb.h>
 #include <time.h>
 //51015-51097
-#define port_low 1025
-#define port_high 65535
+#define port_low 51015
+#define port_high 51097
 struct player{
-
+        int total;
 	int server_socket;
 	int id;
 	int port;

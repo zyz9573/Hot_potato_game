@@ -209,7 +209,7 @@ RACE CONDITION!!!
 	printf("%s\n",test2_buffer);
 */
 	//printf("Here is %d, left fd is %d, right fd is %d\n",player_info->id,left_host_fd,right_host_fd);
-
+	printf("Connected as player %d out of %d total playes",player_info->id,player_info->total);
 	time_t t;
   	srand((unsigned) time(&t)+player_info->id);
 
@@ -316,9 +316,9 @@ RACE CONDITION!!!
 	}
 
 	free(temp_player);
-	close(left_client_fd);
-	close(right_client_fd);
-	close(host_fd);
+	//close(left_client_fd);
+	//close(right_client_fd);
+       	//close(host_fd);
 	close(client_fd);
 
 	return EXIT_SUCCESS;
