@@ -9,16 +9,16 @@ int main(int argc, char** argv){
 	int port_num = atoi(argv[1]);
 	int num_players = atoi(argv[2]);
 	int num_hops = atoi(argv[3]);
-	if(num_players<1){
-		printf("ERROR: NOT ENOUGH PLAYERS");
+	if(num_players<=1){
+		printf("ERROR: NOT ENOUGH PLAYERS\n");
 		exit(EXIT_FAILURE);
 	}
 	if(num_hops<0){
-		printf("ERROR: HOT ENOUGH HOPS");
+		printf("ERROR: HOT ENOUGH HOPS\n");
 		exit(EXIT_FAILURE);
 	}
 	if(port_num<1025 || port_num>65535){
-		printf("ERROR: WRONG NUMBER OF PORT");
+		printf("ERROR: WRONG NUMBER OF PORT\n");
 		exit(EXIT_FAILURE);
 	}
 	int server_fd = socket(AF_INET,SOCK_STREAM,0);//create socket;AF_INET means IPV4 and SOCK_STREAM means Socket type
@@ -202,6 +202,8 @@ int main(int argc, char** argv){
 	//char next_id[8];
 
 	int end_id=-1;
+	printf("Ready to start the game, sending potato to player %d\n",fp);
+	if(num_hops>0){
 	for(int i=0;i<num_players;++i){
 		if(i==fp){
 			send(players[i]->player_socket,potato,sizeof(potato),0);			
@@ -212,7 +214,7 @@ int main(int argc, char** argv){
 	}
 
 
-	printf("Ready to start the game, sending potato to player %d\n",fp);
+	//printf("Ready to start the game, sending potato to player %d\n",fp);
 	while(num_hops>0){
 		int temp_fd=-1;
 		select(maxfdp,&set,NULL,NULL,NULL);
@@ -259,7 +261,7 @@ int main(int argc, char** argv){
 			FD_SET(players[i]->player_socket,&set);
 		}		
 	}
-
+	}
 	for(int i=0;i<num_players;i++){
 		if(players[i]->id==end_id){
 			char s_message[32]="IT";
